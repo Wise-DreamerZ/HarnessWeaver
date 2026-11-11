@@ -11,7 +11,10 @@ from harnessweaver.modules.approvals.channels import (
     CallbackConfig,
     ConsoleChannel,
     ConsoleConfig,
+    EmailChannel,
+    EmailConfig,
     MemoryChannel,
+    SmtpTransport,
     WebhookChannel,
     WebhookConfig,
 )
@@ -21,7 +24,10 @@ __all__ = [
     "CallbackConfig",
     "ConsoleChannel",
     "ConsoleConfig",
+    "EmailChannel",
+    "EmailConfig",
     "MemoryChannel",
+    "SmtpTransport",
     "WebhookChannel",
     "WebhookConfig",
 ]

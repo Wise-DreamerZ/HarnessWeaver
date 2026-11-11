@@ -13,7 +13,7 @@ An `ApprovalRequest` has `approval_id`, `run_id`, `reason`, `approver_role`, the
 
 ```yaml
 approvals:
-  use: webhook                      # memory (default), callback, console, webhook
+  use: webhook                      # memory (default), callback, console, webhook, email
   url: https://approvals.acme.example/hooks/harness
   headers_env: { Authorization: APPROVALS_TOKEN }
   timeout: 24h
@@ -24,6 +24,22 @@ tasks:
     approvals: { tools: [refund_payment], approver_role: finance, timeout: 4h }
 state: { use: sqlite }              # so waiting runs survive a restart
 ```
+
+Or send approval requests by e-mail, using only the standard library:
+
+```yaml
+approvals:
+  use: email
+  sender: harness@acme.example
+  recipients: [finance-approvals@acme.example]
+  # host: direct setting (required)
+  # login_env, password_env default to HARNESSWEAVER_EMAIL_*
+  # set login_env/password_env to null for unauthenticated relays
+  # port defaults to 587; starttls defaults to true
+  # timeout defaults to 30s
+```
+
+The message names the task, the tool (or notes an output approval), the reason and how to answer; it never includes raw content (R9). Credentials come from environment variables (S1). In test mode the channel refuses the network (R14).
 
 ## Grants
 
