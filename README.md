@@ -11,6 +11,8 @@
 [![License](https://img.shields.io/github/license/Wise-DreamerZ/HarnessWeaver)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-harnessweaver.wisedreamerz.com-3080ff)](https://harnessweaver.wisedreamerz.com/docs/)
 
+<a href="https://www.producthunt.com/products/harnessweaver?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-harnessweaver" target="_blank" rel="noopener noreferrer"><picture><source media="(prefers-color-scheme: dark)" srcset="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1313224&amp;theme=neutral&amp;t=1794456004865"><img alt="HarnessWeaver - One spec for the controls every AI app needs | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1313224&amp;theme=light&amp;t=1794455912516"></picture></a>
+
 </div>
 
 ---

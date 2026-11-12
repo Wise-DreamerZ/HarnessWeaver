@@ -15,6 +15,9 @@
   <img src="https://img.shields.io/badge/typescript-node%2022%2B-3080ff" alt="Node 22+">
   <img src="https://img.shields.io/badge/license-Apache--2.0-ac4bff" alt="License: Apache-2.0">
 </p>
+<p align="center">
+  <a href="https://www.producthunt.com/products/harnessweaver?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-harnessweaver" target="_blank" rel="noopener noreferrer"><img alt="HarnessWeaver - One spec for the controls every AI app needs | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1313224&amp;theme=light&amp;t=1794455912516#only-light"><img alt="HarnessWeaver - One spec for the controls every AI app needs | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1313224&amp;theme=neutral&amp;t=1794456004865#only-dark"></a>
+</p>
 
 ---
 
