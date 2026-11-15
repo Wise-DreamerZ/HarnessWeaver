@@ -14,6 +14,7 @@ from harnessweaver_cli.main import app
 runner = CliRunner()
 
 SCAFFOLD = {
+    ".github/workflows/ci.yml",
     "README.md",
     "pyproject.toml",
     "src/acme_tools_harness/__init__.py",

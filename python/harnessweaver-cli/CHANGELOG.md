@@ -4,6 +4,10 @@ All notable changes to the `harnessweaver` command and its project templates. Th
 
 ## [Unreleased]
 
+### Added
+
+- `harnessweaver plugin new` includes a SHA-pinned GitHub Actions workflow that runs the generated plugin's tests and namespace conformance checks on Python 3.12, 3.13 and 3.14 in offline test mode.
+
 ## 0.7.2 - 2026-11-08
 
 ### Changed

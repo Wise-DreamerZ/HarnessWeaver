@@ -7,6 +7,11 @@ uv sync                  # install it, with pytest
 uv run pytest            # its tests and the HarnessWeaver conformance suite
 ```
 
+The generated `.github/workflows/ci.yml` runs these checks on Python 3.12, 3.13
+and 3.14 for pull requests and pushes to `main`. It installs the plugin with
+`uv sync` and runs `uv run pytest`, including the namespace's conformance suite
+from `pyproject.toml`. Tests run in offline mode with no provider keys.
+
 Use it from any app's `harness.yaml` once it is installed next to `harnessweaver`:
 
 ```yaml

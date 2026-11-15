@@ -685,7 +685,7 @@ flowchart TD
 
 ### Building a plugin in your own repository
 
-1. `harnessweaver plugin new acme` scaffolds a standalone package: a `pyproject.toml` with the entry point, a `Plugin` object, a sample guard, and tests whose `pytest` run includes the conformance suite. A CI workflow in the scaffold is *planned*.
+1. `harnessweaver plugin new acme` scaffolds a standalone package: a `pyproject.toml` with the entry point, a `Plugin` object, a sample guard, tests whose `pytest` run includes the conformance suite, and a GitHub Actions workflow that runs them on Python 3.12, 3.13 and 3.14 in offline test mode.
 2. Build against the **public extension surface** only:
    - `harnessweaver.Plugin` and the decorators
    - the port Protocols in `harnessweaver.ports`
