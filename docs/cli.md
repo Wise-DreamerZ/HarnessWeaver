@@ -216,6 +216,11 @@ harnessweaver plugin new NAMESPACE [DIRECTORY] [--force]
 
 Scaffolds a standalone plugin package in `DIRECTORY` (default `./<namespace>-harness`): a `pyproject.toml` with the entry point, the `hw.Plugin` object, a sample guard, and tests whose pytest run includes the conformance suite. See [Plugins](advanced/plugins.md).
 
+The generated GitHub Actions workflow installs the plugin and runs its tests and
+namespace conformance checks on Python 3.12, 3.13 and 3.14. It runs on pull
+requests and pushes to `main`, with read-only repository permissions and offline
+test mode; no model provider keys are needed.
+
 ### plugin list
 
 ```text
