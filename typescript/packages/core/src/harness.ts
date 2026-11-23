@@ -222,9 +222,11 @@ export class Harness {
   }
 
   private async finish(run: RunContext, status: RunStatus, error: unknown, started: number, onEnd?: (result: RunResult) => void): Promise<void> {
-    const info = error === null ? null : classify(error).toInfo();
+    let info = error === null ? null : classify(error).toInfo();
     const usage = { ...run.meter.usage };
-    if (info !== null && status === "failed") await run.emit("run.error", { hook: "run.error", error: info, step: null }, false);
+    // `run.error` middleware may reclassify the error: run.end and the result carry the
+    // event it leaves. Its outcome can't change the ending: the run fails either way.
+    if (info !== null && status === "failed") info = (await run.emit("run.error", { hook: "run.error", error: info, step: null }, false)).event.error;
     await run.emit("run.end", { hook: "run.end", status, output: run.output, error: info, usage, cost_usd: run.meter.costKnown ? run.meter.usd : null }, false);
     onEnd?.({
       run_id: run.runId,

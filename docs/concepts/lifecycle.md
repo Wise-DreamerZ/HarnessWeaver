@@ -98,6 +98,8 @@ Each hook point has one typed event. Middleware receives it with the run's envel
 | `run.error` | `RunErrorEvent` | `error` (an `ErrorInfo`), `step` |
 | `run.end` | `RunEndEvent` | `status`, `output`, `error`, `usage`, `cost_usd` |
 
+Middleware on `run.error` can reclassify the error: return `Continue` with the event's `error` replaced, and `run.end` and the run's result carry the new `ErrorInfo` instead of the one raised.
+
 The neutral model contracts are:
 
 | Contract | Fields |

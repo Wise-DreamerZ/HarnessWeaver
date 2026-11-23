@@ -17,6 +17,7 @@ export const SUITES_WITH_RUNNERS = [
   "outcomes",
   "plugins",
   "routing",
+  "runs",
   "semver",
 ];
 
