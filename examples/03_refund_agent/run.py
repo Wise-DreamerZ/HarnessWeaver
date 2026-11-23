@@ -2,10 +2,12 @@
 
     HARNESSWEAVER_ENV=offline uv run python examples/03_refund_agent/run.py
 
-The app asks for a refund; the harness runs the agent, which looks the order up
-and asks to refund 250 USD. That is over the manifest's 100 USD threshold, so the
-run waits for finance. Once finance approves, the agent continues from where it
-stopped and only the approved call runs.
+The app asks for a refund; the harness runs the agent, which asks to refund
+250 USD. That is over the manifest's 100 USD threshold, so the run waits for
+finance. This script runs on the real clock: on a Saturday or Sunday (UTC),
+Acme's ``no_weekend_refunds`` middleware asks first, so the reason printed is
+the weekend rule. Either way one approval answers both. Once finance approves,
+the agent continues from where it stopped and only the approved call runs.
 """
 
 import asyncio

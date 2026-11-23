@@ -4,6 +4,14 @@ All notable changes to the `harnessweaver` command and its project templates. Th
 
 ## [Unreleased]
 
+### Added
+
+- `harnessweaver eval run --at TIME` starts the suites at another moment, an ISO 8601 time with a time zone such as `2026-01-10T10:00:00Z`, to check rules that depend on the date (a weekend rule, say).
+
+### Fixed
+
+- `harnessweaver eval run` runs the suites on a fixed date: a clock that starts on Monday 2026-01-05 09:00 UTC, where `FakeClock` starts, and moves with real time, so deadlines still apply. It used the real clock, so a rule that reads the date could change the verdicts with the day the suites ran on: Example 03's suites failed every Saturday and Sunday, with no change to the code (RULES C4).
+
 ## 0.7.2 - 2026-11-08
 
 ### Changed

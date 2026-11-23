@@ -9,7 +9,7 @@ from pathlib import Path
 
 import typer
 
-from harnessweaver import Harness
+from harnessweaver import Clock, Harness
 from harnessweaver.core.errors import HarnessError, SpecError
 from harnessweaver.core.ports import StateStore
 from harnessweaver.spec import EffectiveSpec, load_spec
@@ -48,13 +48,15 @@ def load_harness(
     profile_dirs: list[Path],
     *,
     state: StateStore | None = None,
+    clock: Clock | None = None,
     code: int = 1,
 ) -> Harness:
     """Load and build the harness, the same way an app does (every check runs).
-    ``state`` replaces the spec's state store (evals keep their runs in memory)."""
+    ``state`` replaces the spec's state store (evals keep their runs in memory),
+    and ``clock`` the real clock (evals run on a fixed date)."""
     try:
         effective = load_spec(spec_path(path, code), env=env, profile_dirs=profile_dirs)
-        return Harness.from_spec(effective, state=state)
+        return Harness.from_spec(effective, state=state, clock=clock)
     except HarnessError as exc:
         raise fail(exc, code) from None
 

@@ -147,10 +147,12 @@ Runs pytest with `HARNESSWEAVER_TEST_MODE=1` (live providers refuse to call out)
 ### eval run
 
 ```text
-harnessweaver eval run [SPEC] [-e ENV] [--profile-dir DIR] [--suite NAME]... [--task TASK]... [--baselines DIR] [--update-baseline] [--format text|json]
+harnessweaver eval run [SPEC] [-e ENV] [--profile-dir DIR] [--suite NAME]... [--task TASK]... [--baselines DIR] [--update-baseline] [--at TIME] [--format text|json]
 ```
 
 Runs the spec's eval suites, compares each with its baseline (`.harness/baselines/<task>.<suite>.json` next to the spec, or `--baselines DIR`), and prints the shadow-guard report. Exits 1 when a suite misses its threshold or a case that passed in the baseline fails, and 2 when the suites can't run. `--update-baseline` accepts the results of suites that meet their thresholds. See [Evals](tutorial/evals.md).
+
+The suites run on a fixed date, so a rule that reads the date, such as one that holds refunds at the weekend, gives the same verdicts whatever day they run on. The clock starts on Monday 2026-01-05 09:00 UTC, where `FakeClock` starts, and moves with real time, so deadlines still apply. `--at` starts it at another moment, an ISO 8601 time with a time zone such as `2026-01-10T10:00:00Z` (a Saturday).
 
 ### eval report
 
