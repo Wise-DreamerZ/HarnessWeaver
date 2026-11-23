@@ -44,7 +44,7 @@ language. A plugin's templates are named `<namespace>.<template>`
 | `hooks [SPEC] [--task TASK]` | The middleware on every hook point in the order it runs, with band, fail mode and timeout |
 | `test [-e ENV] [PYTEST ARGS...]` | Run the app's tests with `HARNESSWEAVER_TEST_MODE=1` and the `offline` overlay |
 | `contracts export [DIR] [--check]` | Write the JSON Schema of every contract, or report drift |
-| `eval run [SPEC] [--suite NAME] [--task TASK] [--update-baseline]` | Run the spec's eval suites, compare with `.harness/baselines`, print the shadow-guard report. Exits 1 on a missed threshold or a regression, 2 when the suites can't run |
+| `eval run [SPEC] [--suite NAME] [--task TASK] [--update-baseline] [--at TIME]` | Run the spec's eval suites, compare with `.harness/baselines`, print the shadow-guard report. The suites run on a fixed date, Monday 2026-01-05 09:00 UTC unless `--at` says otherwise. Exits 1 on a missed threshold or a regression, 2 when the suites can't run |
 | `eval report [SPEC] [--task TASK]` | The production runs online evals sampled and graded |
 | `policy test [SPEC] [--cases FILE]` | Check a table of tool calls (`policy_tests.yaml`) against the governor's verdicts, as a dry run |
 | `replay RUN_ID [SPEC]` | Run a recorded run again against the current code and spec, and show what changed |

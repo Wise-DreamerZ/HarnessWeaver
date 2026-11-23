@@ -4,21 +4,25 @@
 runs kept in memory, compares each with its baseline in
 ``.harness/baselines/<task>.<suite>.json`` and reports the guards in shadow mode.
 It exits 1 when a suite misses its threshold or a case that passed in the
-baseline fails, and 2 when the suites can't run. ``eval report`` summarizes the
+baseline fails, and 2 when the suites can't run. The suites run on a fixed date
+(``--at``, by default the Monday ``FakeClock`` starts on), so their verdicts
+don't change with the day they run on. ``eval report`` summarizes the
 production runs ``evals.online`` sampled.
 """
 
 import json
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
+from time import monotonic
 from typing import Annotated, Any
 
 import anyio
 import typer
 from pydantic import ValidationError
 
-from harnessweaver import Harness
+from harnessweaver import FakeClock, Harness
 from harnessweaver.core.errors import HarnessError, SpecError
 from harnessweaver.core.evals import (
     Baseline,
@@ -47,6 +51,42 @@ CANT_RUN = 2
 BASELINES = Path(".harness") / "baselines"
 
 Names = Annotated[list[str] | None, typer.Option(help="Only these (repeatable).")]
+
+
+class _EvalClock(FakeClock):
+    """A clock that starts at a fixed moment and then moves with real time.
+
+    The date is the one the suites assume, whatever day they run on (RULES C4),
+    while deadlines and rate-limit windows still see the time that really passes.
+    With no start it is the Monday ``FakeClock`` starts on, as in tests.
+
+    Raises:
+        ValueError: For a start time with no time zone.
+    """
+
+    def __init__(self, start: datetime | None = None) -> None:
+        super().__init__(start)
+        self._began = monotonic()
+
+    def now(self) -> datetime:
+        """The start, plus the real time since the clock was made."""
+        return super().now() + timedelta(seconds=monotonic() - self._began)
+
+
+def _clock(at: str | None) -> _EvalClock:
+    """The clock the suites run on, starting at ``--at`` when it is given.
+
+    Raises:
+        typer.Exit: With code 2 for a time that isn't ISO 8601 with a time zone.
+    """
+    try:
+        return _EvalClock(datetime.fromisoformat(at) if at else None)
+    except ValueError:
+        raise fail(
+            f"--at takes an ISO 8601 time with a time zone, such as 2026-01-10T10:00:00Z, "
+            f"not {at!r}",
+            CANT_RUN,
+        ) from None
 
 
 @dataclass
@@ -177,14 +217,24 @@ def run(
     update_baseline: Annotated[
         bool, typer.Option("--update-baseline", help="Accept these results as the baselines.")
     ] = False,
+    at: Annotated[
+        str | None,
+        typer.Option(
+            help="When the suites start, as an ISO 8601 time with a time zone "
+            "(default: Monday 2026-01-05 09:00 UTC)."
+        ),
+    ] = None,
     output: Format = "text",
 ) -> None:
     """Run the eval suites, compare them with their baselines and report shadow guards.
 
+    The suites run on a clock that starts at ``--at`` and moves with real time.
     Exits 1 when a suite misses its pass-rate threshold or a case that passed in
     the baseline fails; 2 when the suites can't run.
     """
-    harness = load_harness(path, env, profile_dir or [], state=MemoryStateStore(), code=CANT_RUN)
+    harness = load_harness(
+        path, env, profile_dir or [], state=MemoryStateStore(), clock=_clock(at), code=CANT_RUN
+    )
     try:
         datasets = _datasets(harness, task or [], suite or [])
         where = baselines or _base(harness) / BASELINES

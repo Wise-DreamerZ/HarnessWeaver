@@ -1,12 +1,17 @@
 """``harnessweaver eval run`` and ``eval report`` on a fresh extraction project."""
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import anyio
+import pytest
 from typer.testing import CliRunner
 
 import harnessweaver as hw
+from harnessweaver_cli import evals
+from harnessweaver_cli._load import load_harness
 from harnessweaver_cli.main import app
 
 runner = CliRunner()
@@ -24,6 +29,39 @@ def test_the_golden_set_passes_offline(project: Path) -> None:
     assert result.exit_code == 0, result.output
     assert "ok: golden (extract): 2/2 passed, pass rate 1.0 (threshold 0.9)" in result.output
     assert "no baseline yet; --update-baseline writes one" in result.output
+
+
+def test_the_suites_run_on_a_fixed_date_that_moves_with_real_time(
+    project: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The suites start on Monday 2026-01-05 09:00 UTC, or at ``--at``, whatever the
+    wall clock says, so rules that read the date can't make them flaky (RULES C4).
+    The clock still moves with real time, so deadlines apply."""
+    clocks: list[hw.Clock] = []
+
+    def spy(*args: Any, **kwargs: Any) -> hw.Harness:
+        clocks.append(kwargs["clock"])
+        return load_harness(*args, **kwargs)
+
+    ticks = [100.0]
+    monkeypatch.setattr(evals, "load_harness", spy)
+    monkeypatch.setattr(evals, "monotonic", lambda: ticks[0])
+    monkeypatch.setattr(hw.SystemClock, "now", lambda self: datetime(2026, 1, 10, tzinfo=UTC))
+    assert runner.invoke(app, ["eval", "run", "-e", "offline"]).exit_code == 0
+    at = ["eval", "run", "-e", "offline", "--at", "2026-01-10T12:00:00+02:00"]
+    assert runner.invoke(app, at).exit_code == 0
+    default, given = clocks
+    assert default.now() == datetime(2026, 1, 5, 9, 0, tzinfo=UTC)  # FakeClock's Monday
+    assert given.now() == datetime(2026, 1, 10, 10, 0, tzinfo=UTC)
+    ticks[0] += 90
+    assert default.now() == datetime(2026, 1, 5, 9, 1, 30, tzinfo=UTC)
+
+
+@pytest.mark.parametrize("at", ["2026-01-10T10:00:00", "next saturday"])
+def test_at_needs_a_time_with_a_time_zone(project: Path, at: str) -> None:
+    result = runner.invoke(app, ["eval", "run", "-e", "offline", "--at", at])
+    assert result.exit_code == 2, result.output
+    assert "--at takes an ISO 8601 time with a time zone" in result.output
 
 
 def test_a_regression_against_the_baseline_fails(project: Path) -> None:

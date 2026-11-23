@@ -42,6 +42,7 @@ Below are the changes that belong to the repository rather than to one package: 
 
 ### Fixed
 
+- Example 03's documented `eval run` command passes on any day: its golden and red-team suites failed every Saturday and Sunday, when `acme.no_weekend_refunds` held their refunds for finance, because `eval run` used the real clock (it now runs on a fixed date; see the CLI's changelog). The example's tests run the command on a Saturday, and with `--at` to show the weekend rule. The docstring of `run.py` now says that on a weekend the weekend rule asks first, so that's the reason it prints.
 - The Vercel build installs uv 0.13.6 into a virtual environment of its own. The build image's `python3` is now managed by uv and marked externally managed (PEP 668), so `pip install` into it failed and no deployment could build.
 
 ## 2026-11-01

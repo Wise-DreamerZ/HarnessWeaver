@@ -56,7 +56,9 @@ ok: redteam (orders): 3/3 passed, pass rate 1.0 (threshold 1.0)
 | 1 | A suite missed its threshold, or a case regressed |
 | 2 | The suites couldn't run: a broken spec, a missing dataset |
 
-Run `eval run` in CI, next to `policy test`. In code, `await harness.evaluate("evals/golden.yaml")` returns a `SuiteResult`.
+The suites run on a fixed date, Monday 2026-01-05 09:00 UTC, so a rule that reads the date can't pass on Friday and fail on Saturday. `--at 2026-01-10T10:00:00Z` runs them on another day.
+
+Run `eval run` in CI, next to `policy test`. In code, `await harness.evaluate("evals/golden.yaml")` returns a `SuiteResult`, on the harness's own clock.
 
 ## The shadow-guard report
 

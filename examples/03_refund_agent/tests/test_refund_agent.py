@@ -136,6 +136,29 @@ async def test_wrap_py_governs_the_existing_agent(capsys: pytest.CaptureFixture[
     ]
 
 
+def test_the_documented_eval_command_passes_on_a_weekend(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The README's ``eval run`` command gives the same verdicts on any day (RULES C4, R14).
+
+    ``acme.no_weekend_refunds`` reads the run's clock, and the command builds its own
+    harness, so the wall clock is pinned to a Saturday to show it isn't what decides.
+    """
+    monkeypatch.setattr(hw.SystemClock, "now", lambda self: SATURDAY)
+    result = CliRunner().invoke(
+        app, ["eval", "run", str(SPEC), "-e", "offline", "--profile-dir", str(ORG)]
+    )
+    assert result.exit_code == 0, result.output
+    assert "ok: golden (refund): 2/2 passed" in result.output
+    assert "ok: redteam (refund): 4/4 passed" in result.output
+
+
+def test_eval_run_at_a_saturday_shows_the_weekend_rule() -> None:
+    """``--at`` runs the suites on another day: on a Saturday, the small refund waits."""
+    command = ["eval", "run", str(SPEC), "-e", "offline", "--profile-dir", str(ORG)]
+    result = CliRunner().invoke(app, [*command, "--suite", "golden", "--at", SATURDAY.isoformat()])
+    assert result.exit_code == 1, result.output
+    assert "failed small-refund [awaiting_approval]" in result.output
+
+
 def test_the_policy_tests_pass() -> None:
     result = CliRunner().invoke(
         app,
