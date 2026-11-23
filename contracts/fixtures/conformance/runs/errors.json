@@ -1,0 +1,60 @@
+{
+  "suite": "runs",
+  "description": "How a run ends when its code fails (DESIGNS No. 7). Each case opens a session whose code raises `raises`: the taxonomy error class named by `type`, with that `message` and no details. Each middleware runs on `run.error` in the app band and `does` one of: continue, modify (returns the event with its `error` replaced by `error`, a whole ErrorInfo) or retry. `seen` is the error each middleware saw. `run_end_error` is the `error` of the `run.end` event; `status` and `error` are the run result's. Every error is compared whole.",
+  "cases": [
+    {
+      "name": "with no run.error middleware the run fails with the error it raised",
+      "raises": { "type": "ToolError", "message": "the tool broke" },
+      "middleware": [],
+      "expect": {
+        "status": "failed",
+        "run_end_error": { "code": "tool_error", "type": "ToolError", "message": "the tool broke", "retryable": false, "details": {} },
+        "error": { "code": "tool_error", "type": "ToolError", "message": "the tool broke", "retryable": false, "details": {} }
+      }
+    },
+    {
+      "name": "middleware that continues leaves the error as raised",
+      "raises": { "type": "ProviderError", "message": "upstream timed out" },
+      "middleware": [{ "name": "observe", "does": { "outcome": "continue" } }],
+      "expect": {
+        "status": "failed",
+        "seen": {
+          "observe": { "code": "provider_error", "type": "ProviderError", "message": "upstream timed out", "retryable": true, "details": {} }
+        },
+        "run_end_error": { "code": "provider_error", "type": "ProviderError", "message": "upstream timed out", "retryable": true, "details": {} },
+        "error": { "code": "provider_error", "type": "ProviderError", "message": "upstream timed out", "retryable": true, "details": {} }
+      }
+    },
+    {
+      "name": "middleware that modifies the error reclassifies the run's error",
+      "raises": { "type": "ProviderError", "message": "upstream timed out" },
+      "middleware": [
+        {
+          "name": "reclassify",
+          "does": {
+            "outcome": "modify",
+            "error": { "code": "deadline_exceeded", "type": "DeadlineExceeded", "message": "upstream timed out", "retryable": false, "details": { "was": "provider_error" } }
+          }
+        }
+      ],
+      "expect": {
+        "status": "failed",
+        "seen": {
+          "reclassify": { "code": "provider_error", "type": "ProviderError", "message": "upstream timed out", "retryable": true, "details": {} }
+        },
+        "run_end_error": { "code": "deadline_exceeded", "type": "DeadlineExceeded", "message": "upstream timed out", "retryable": false, "details": { "was": "provider_error" } },
+        "error": { "code": "deadline_exceeded", "type": "DeadlineExceeded", "message": "upstream timed out", "retryable": false, "details": { "was": "provider_error" } }
+      }
+    },
+    {
+      "name": "a retry at run.error doesn't retry the run, which fails with the error it raised",
+      "raises": { "type": "ToolError", "message": "the tool broke" },
+      "middleware": [{ "name": "again", "does": { "outcome": "retry", "reason": "try once more" } }],
+      "expect": {
+        "status": "failed",
+        "run_end_error": { "code": "tool_error", "type": "ToolError", "message": "the tool broke", "retryable": false, "details": {} },
+        "error": { "code": "tool_error", "type": "ToolError", "message": "the tool broke", "retryable": false, "details": {} }
+      }
+    }
+  ]
+}

@@ -1,16 +1,20 @@
-/** Runners for the runtime suites: `bus`, `budgets` and `plugins`. */
+/** Runners for the runtime suites: `bus`, `budgets`, `plugins` and `runs`. */
 
 import { describe, expect, it } from "vitest";
 import { BudgetMeter, resolveCost } from "../src/budgets.js";
 import { HookBus } from "../src/bus.js";
 import { FakeClock } from "../src/clock.js";
-import type { ModelRequest } from "../src/contracts.js";
+import type { ModelRequest, RunResult } from "../src/contracts.js";
 import { newEnvelope } from "../src/envelope.js";
+import * as errors from "../src/errors.js";
 import { SpecError } from "../src/errors.js";
-import type { HookEvent, HookPoint } from "../src/hooks.js";
-import type { Registration } from "../src/middleware.js";
+import { Harness } from "../src/harness.js";
+import type { EventOf, HookEvent, HookPoint } from "../src/hooks.js";
+import { defineMiddleware, type Registration } from "../src/middleware.js";
 import type { Outcome } from "../src/outcomes.js";
 import { checkNamespace, isAllowed, ownerOf, ownershipProblem, qualify } from "../src/plugins/names.js";
+import { definePlugin } from "../src/plugins/plugin.js";
+import { specFromDocuments } from "../src/spec/loader.js";
 import { RunTrace } from "../src/trace.js";
 import { casesOf } from "./fixtures.js";
 
@@ -168,5 +172,44 @@ describe("plugins", () => {
       }
       expect(valid).toBe(c.expect);
     }
+  });
+});
+
+// --- runs ------------------------------------------------------------------------------
+
+describe("runs", () => {
+  it.each(casesOf("runs"))("%s", async (_, c) => {
+    const seen: Record<string, unknown> = {};
+    const ended: unknown[] = [];
+    const declared = c.middleware.map((spec: Record<string, any>) =>
+      defineMiddleware({
+        name: spec.name,
+        hooks: ["run.error"],
+        fail_mode: "closed",
+        handler: (event) => {
+          const failed = event as EventOf<"run.error">;
+          seen[spec.name] = failed.error;
+          if (spec.does.outcome === "modify") return { kind: "continue", modified: { ...failed, error: spec.does.error } };
+          if (spec.does.outcome === "retry") return { kind: "retry", reason: spec.does.reason };
+          if (spec.does.outcome !== "continue") throw new Error(`unknown behavior ${spec.does.outcome}`);
+          return { kind: "continue" };
+        },
+      }),
+    );
+    const recordEnd = defineMiddleware({ name: "record_end", hooks: ["run.end"], fail_mode: "closed", handler: (event) => void ended.push((event as EventOf<"run.end">).error ?? null) });
+    const middleware = [recordEnd, ...declared];
+    const plugin = definePlugin({ namespace: "conformance", version: "1.0.0", middleware });
+    const spec = specFromDocuments({ apiVersion: "harnessweaver/v1", kind: "Harness", metadata: { name: "app" }, middleware: middleware.map((m) => ({ use: `conformance.${m.name}` })) });
+    const harness = Harness.fromSpec(spec, { plugins: [plugin], clock: new FakeClock() });
+    const Raised = (errors as unknown as Record<string, new (message: string) => Error>)[c.raises.type]!;
+    let result: RunResult | undefined;
+    const raise = (): never => {
+      throw new Raised(c.raises.message);
+    };
+    await expect(harness.session({ onEnd: (r) => (result = r) }, raise)).rejects.toBeInstanceOf(Raised);
+    expect(seen).toStrictEqual(c.expect.seen ?? seen);
+    expect(ended).toStrictEqual([c.expect.run_end_error]);
+    expect(result!.status).toBe(c.expect.status);
+    expect(result!.error).toStrictEqual(c.expect.error);
   });
 });

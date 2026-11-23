@@ -4,6 +4,10 @@ All notable changes to the TypeScript core. The format follows [Keep a Changelog
 
 ## [Unreleased]
 
+### Fixed
+
+- `run.error` middleware can reclassify the error, as in Python: when it returns `Continue` with a modified event, `run.end` and the run's result carry that `ErrorInfo`. Before, the session dropped what `run.error` returned and ended the run with the error as raised. It passes the new `runs` conformance suite.
+
 ## 0.5.0 - 2026-11-02
 
 The first version published to npm.

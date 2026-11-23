@@ -4,6 +4,10 @@ All notable changes to the core package. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- Conformance fixtures suite `runs`: how a run ends when its code fails. It pins that `run.error` middleware returning a modified event reclassifies the error that `run.end` and the result carry, and that a `Retry` there doesn't retry the run.
+
 ## 0.18.0 - 2026-11-02
 
 The first version published to PyPI.

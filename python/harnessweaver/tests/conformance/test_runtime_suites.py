@@ -1,4 +1,4 @@
-"""Python runners for the runtime suites: ``bus``, ``budgets`` and ``plugins``."""
+"""Python runners for the runtime suites: ``bus``, ``budgets``, ``plugins`` and ``runs``."""
 
 from datetime import timedelta
 from typing import Any
@@ -6,18 +6,28 @@ from typing import Any
 import anyio
 import pytest
 
+from harnessweaver import errors
 from harnessweaver.core.budgets import BudgetMeter, resolve_cost
 from harnessweaver.core.bus import HookBus
 from harnessweaver.core.envelope import Budget, Envelope, FakeClock
-from harnessweaver.core.errors import SpecError
-from harnessweaver.core.hooks import Band, HookPoint, InputEvent, OutputEvent, RunEndEvent
+from harnessweaver.core.errors import ErrorInfo, SpecError
+from harnessweaver.core.hooks import (
+    Band,
+    HookPoint,
+    InputEvent,
+    OutputEvent,
+    RunEndEvent,
+    RunErrorEvent,
+)
 from harnessweaver.core.messages import Message, ModelRequest, ModelResponse, Usage
 from harnessweaver.core.middleware import Registration, middleware
 from harnessweaver.core.outcomes import Block, Continue, Escalate, Outcome, Retry, Suspend
 from harnessweaver.core.plugins import Contribution, Plugin, check_owned, qualify
 from harnessweaver.core.registry import is_allowed, owner_of
+from harnessweaver.core.registry.catalog import PluginCatalog, PluginSource, import_target
 from harnessweaver.core.runs import RunStatus
 from harnessweaver.core.trace import RunTrace, TraceKind
+from harnessweaver.testing import harness_for_test
 
 from .test_suites import _strict_equal
 
@@ -220,3 +230,62 @@ def test_plugins(case: dict[str, Any]) -> None:
         else:
             valid = True
         assert valid is expect
+
+
+# --- runs ----------------------------------------------------------------------------------------
+
+
+@pytest.mark.conformance_suite("runs")
+@pytest.mark.anyio
+async def test_runs(case: dict[str, Any]) -> None:
+    """A session raises; ``run.error`` middleware answers; check run.end and the result."""
+    expect = case["expect"]
+    seen: dict[str, Any] = {}
+    ended: list[Any] = []
+
+    def declare(spec: dict[str, Any]) -> Any:
+        does = spec["does"]
+
+        @middleware(hooks=["run.error"], fail_mode="closed", name=spec["name"])
+        async def answer(event: RunErrorEvent, env: Envelope) -> Outcome:
+            seen[spec["name"]] = event.error.model_dump(mode="json")
+            match does["outcome"]:
+                case "continue":
+                    return Continue()
+                case "modify":
+                    error = ErrorInfo.model_validate(does["error"])
+                    return Continue(modified=event.model_copy(update={"error": error}))
+                case "retry":
+                    return Retry(reason=does["reason"])
+                case unknown:
+                    raise AssertionError(f"unknown behavior {unknown}")
+
+        return answer
+
+    @middleware(hooks=["run.end"], fail_mode="closed")
+    async def record_end(event: RunEndEvent, env: Envelope) -> None:
+        ended.append(event.error.model_dump(mode="json") if event.error else None)
+
+    declared = [declare(spec) for spec in case["middleware"]]
+    plugin = Plugin(namespace="conformance", version="1.0.0", middleware=[record_end, *declared])
+    catalog = PluginCatalog(
+        [PluginSource("conformance", "conformance:plugin", "entry_point")],
+        importer=lambda target: plugin if target == "conformance:plugin" else import_target(target),
+    )
+    names = ["record_end", *(spec["name"] for spec in case["middleware"])]
+    harness = harness_for_test(
+        {"middleware": [{"use": f"conformance.{name}"} for name in names]}, catalog=catalog
+    )
+    raised = getattr(errors, case["raises"]["type"])
+    session = harness.session()
+    with pytest.raises(raised):
+        async with session:
+            raise raised(case["raises"]["message"])
+
+    result = session.result
+    assert result is not None
+    assert seen == expect.get("seen", seen)
+    assert ended == [expect["run_end_error"]]
+    assert result.status.value == expect["status"]
+    assert result.error is not None
+    assert result.error.model_dump(mode="json") == expect["error"]
