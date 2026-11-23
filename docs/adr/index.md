@@ -55,3 +55,4 @@ Each architecture decision record (ADR) states a decision HarnessWeaver made, wh
 | [ADR-0045](0045-what-an-approval-covers.md) | What an approval covers: one execution, by the role that step needs | Accepted |
 | [ADR-0046](0046-landing-page.md) | The website: a landing page at the root, the docs under /docs/ | Accepted; amended by ADR-0047 |
 | [ADR-0047](0047-docs-for-users.md) | The docs site leaves out the ADRs and outside inspirations | Accepted |
+| [ADR-0048](0048-required-profiles.md) | A platform can require profiles at load | Proposed |

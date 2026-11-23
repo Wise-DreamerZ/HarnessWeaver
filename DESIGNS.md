@@ -1291,6 +1291,7 @@ Each ADR records a decision, the reason for it, and its status, in its own file 
 | [0045](docs/adr/0045-what-an-approval-covers.md) | What an approval covers: one execution, by the role that step needs | Accepted |
 | [0046](docs/adr/0046-landing-page.md) | The website: a landing page at the root, the docs under /docs/ | Accepted; amended by 0047 |
 | [0047](docs/adr/0047-docs-for-users.md) | The docs site leaves out the ADRs and outside inspirations | Accepted |
+| [0048](docs/adr/0048-required-profiles.md) | A platform can require profiles at load | Proposed |
 
 ## 29. Deviations from the design guide
 
