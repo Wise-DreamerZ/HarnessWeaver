@@ -1,6 +1,6 @@
 # Concepts
 
-HarnessWeaver is a **framework that produces harnesses**. Each app team assembles its own harness from a small core plus swappable parts, and the platform team's org baseline applies to every app and can't be removed.
+HarnessWeaver is a **framework that produces harnesses**. Each app team assembles its own harness from a small core plus swappable parts, and the platform team's org baseline binds every app that extends it: no app can remove or loosen what it locks.
 
 ## Who writes what
 
@@ -67,7 +67,7 @@ flowchart LR
 
 Every feature is tested against these goals, in this order. When two conflict, the earlier one wins.
 
-1. **Safe by default, removable by nobody.** Org baseline controls apply automatically and can't be switched off by app config.
+1. **Safe by default, removable by nobody.** Org baseline controls apply to every app that extends the baseline, and its config can't switch them off. The platform team makes sure every app extends it, in review and CI ([Write an org baseline](../how-to/org-baseline.md#8-make-sure-every-app-extends-it)).
 2. **Non-invasive.** HarnessWeaver wraps whatever the app already uses. Adopting it never requires rewriting an agent or switching frameworks.
 3. **Incremental.** Each [adoption level](adoption-levels.md) is useful on its own. One line of code gets you level 0.
 4. **Composable.** Every capability is a module behind a port. Apps pick modules; modules pick providers.

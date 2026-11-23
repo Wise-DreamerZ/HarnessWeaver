@@ -1,6 +1,6 @@
 # Alternatives and comparisons
 
-HarnessWeaver puts controls around the model calls, tool calls and outputs of an app that already has an executor, from one spec merged under an org baseline that apps can't remove. This page has two parts: the [alternatives](#alternatives), which a team might choose instead of HarnessWeaver, and the tools it [works with](#works-with), which do a job it leaves to them.
+HarnessWeaver puts controls around the model calls, tool calls and outputs of an app that already has an executor, from one spec merged with an org baseline whose locks no app that extends it can remove. This page has two parts: the [alternatives](#alternatives), which a team might choose instead of HarnessWeaver, and the tools it [works with](#works-with), which do a job it leaves to them.
 
 ## Alternatives
 
@@ -8,7 +8,7 @@ Each of these covers part of what HarnessWeaver does.
 
 | Product | What it does | How HarnessWeaver differs |
 | --- | --- | --- |
-| NeMo Guardrails | Programmable rails for an LLM app: input, dialog, retrieval, execution and output, configured in YAML and Colang | No dialog flows. One spec also holds budgets, typed output, tool governance, approvals and evals, under an org baseline apps can't remove |
+| NeMo Guardrails | Programmable rails for an LLM app: input, dialog, retrieval, execution and output, configured in YAML and Colang | No dialog flows. One spec also holds budgets, typed output, tool governance, approvals and evals, under an org baseline whose locks apps can't remove |
 | Guardrails AI | Validators from the Guardrails Hub, combined into input and output guards | A detector is one provider. The spec decides what happens when it fires, where, and whether it enforces |
 | LangChain middleware, OpenAI Agents SDK guardrails | Controls built into one agent framework, written in the app's code | One spec for every executor and language, and a platform baseline that applies whatever the app's code does |
 | Microsoft Agent Governance Toolkit | Runtime governance for fleets of agents: deterministic policy on tool calls and messages between agents, agent identity, isolation rings, a kill switch, tamper-evident audit | Governs each run's model calls, tools and output, with budgets, approvals, typed output and evals. Agent identity, sandbox rings and compliance evidence are out of its scope |
@@ -31,7 +31,7 @@ A central gateway has one strength HarnessWeaver doesn't: every call must pass t
 
 These are the closest alternatives.
 
-**NeMo Guardrails** adds programmable rails to an LLM app: input rails on the user's message, dialog rails that steer the conversation with Colang flows, retrieval rails on retrieved chunks, execution rails on tool calls, and output rails on the answer. HarnessWeaver has no dialog rails or flow language, because it never decides what the conversation says next (RULES R12). Its guards run at the same places (input, retrieved context, tool results, output and streams), and the same spec also holds budgets and deadlines, typed output with repair, tool manifests and the governor, policy, approvals and evals. A platform team's baseline is merged into every app's spec, and no app can remove its locked controls.
+**NeMo Guardrails** adds programmable rails to an LLM app: input rails on the user's message, dialog rails that steer the conversation with Colang flows, retrieval rails on retrieved chunks, execution rails on tool calls, and output rails on the answer. HarnessWeaver has no dialog rails or flow language, because it never decides what the conversation says next (RULES R12). Its guards run at the same places (input, retrieved context, tool results, output and streams), and the same spec also holds budgets and deadlines, typed output with repair, tool manifests and the governor, policy, approvals and evals. A platform team's baseline is merged into every spec that extends it, and no such app can remove its locked controls.
 
 **Guardrails AI** combines validators from the Guardrails Hub into input and output guards around a model call, and can run them as a server that apps call. In HarnessWeaver a detector is a `Guardrail` **provider**: it reports what it found, and the spec decides what happens, at which stage, in which band, in shadow mode or enforced, and with what fail mode. The built-in guards are deterministic and need no dependencies. Model-based detectors (Presidio, Llama Guard, Prompt Guard) are *planned* as plugins, and any validator library can be wrapped as a provider today ([Providers and ports](../advanced/providers.md#example-a-guard)).
 

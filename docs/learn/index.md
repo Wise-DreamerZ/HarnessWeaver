@@ -7,7 +7,7 @@ Start here: the concepts, the quickstart, and a tutorial that builds one app cha
 1. **See it work.** The [Quickstart](quickstart.md) creates a project from a template, runs, traces, tests and grades it offline, adds a guard in shadow mode, and calls a real model. It takes about ten minutes.
 2. **Learn it.** The [Tutorial](../tutorial/index.md) builds a support desk in 19 chapters. Chapters 1 to 8 take one task from a plain model call to typed, repaired, budgeted and guarded output under an org baseline. Chapters 9 to 15 add your own steps, routing, retrieval, tools, policy, approvals and durable state. Chapters 16 to 19 cover observability, testing, evals and debugging.
 3. **Ship it.** [Serve it from a web app](../how-to/web-app.md), then work through [Deployment](../deployment/index.md) and its production checklist, and [Security](../deployment/security.md).
-4. **Run it across teams.** [Write an org baseline](../how-to/org-baseline.md) that every app inherits and none can weaken, extend HarnessWeaver with [plugins](../advanced/plugins.md) of your own, and serve the same spec to [TypeScript](../advanced/typescript.md) and, through the [harnessd sidecar](../advanced/sidecar.md), to any language.
+4. **Run it across teams.** [Write an org baseline](../how-to/org-baseline.md) that apps extend and none can weaken, extend HarnessWeaver with [plugins](../advanced/plugins.md) of your own, and serve the same spec to [TypeScript](../advanced/typescript.md) and, through the [harnessd sidecar](../advanced/sidecar.md), to any language.
 
 When something doesn't work, [Troubleshooting](../how-to/troubleshooting.md) explains each load error, blocked run and failed run.
 

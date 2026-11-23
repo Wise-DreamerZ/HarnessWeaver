@@ -31,7 +31,7 @@ The key features are:
 
 - **Declarative**: tracing, cost, budgets, guardrails, typed output, tool governance, policy, approvals, routing, retrieval governance and evals, all in one spec. Your code stays one call.
 - **Non-invasive**: keep the executor you have, whether raw SDK calls, Pydantic AI, the Vercel AI SDK or your own pipeline. Govern an existing client in three lines.
-- **Safe by default**: the org baseline can't be removed by an app, controls fail closed, and no prompt or output reaches a log or a span unredacted.
+- **Safe by default**: an app that extends the org baseline can't remove or loosen what it locks, controls fail closed, and no prompt or output reaches a log or a span unredacted.
 - **Composable**: every capability is a module behind a port, with providers you swap, and plugins anyone can write in their own repository.
 - **Polyglot**: one spec serves Python, TypeScript, and any language through the harnessd sidecar.
 - **Testable**: everything runs offline against fakes, with no network and no model spend, and every decision is in a trace your tests can check.
