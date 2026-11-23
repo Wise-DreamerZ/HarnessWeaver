@@ -21,7 +21,7 @@
 
 Every AI application needs the same cross-cutting controls around its models: tracing and cost, budgets and deadlines, PII redaction and injection checks, validated output, governed tool calls, human approvals, routing and evals. Most teams rebuild these controls inside each app, differently every time.
 
-HarnessWeaver is a **framework for building your own harness**. You keep the executor you already use (raw SDK calls, Pydantic AI, the Vercel AI SDK, a custom pipeline), describe your controls in one `harness.yaml`, and HarnessWeaver intercepts every model call, tool call and output at 13 fixed hook points. Your platform team publishes an org baseline that every app inherits and no app can remove.
+HarnessWeaver is a **framework for building your own harness**. You keep the executor you already use (raw SDK calls, Pydantic AI, the Vercel AI SDK, a custom pipeline), describe your controls in one `harness.yaml`, and HarnessWeaver intercepts every model call, tool call and output at 13 fixed hook points. Your platform team publishes an org baseline, and no app that extends it can remove or loosen what it locks.
 
 ```mermaid
 flowchart LR
@@ -113,7 +113,7 @@ The same spec also serves [TypeScript](https://harnessweaver.wisedreamerz.com/do
 | | A central harness | HarnessWeaver |
 | --- | --- | --- |
 | Who owns control flow | The harness | Your app, with HarnessWeaver intercepting |
-| How controls are applied | Hard-wired in one runtime | Composed per app from plugins, plus an org baseline that can't be removed |
+| How controls are applied | Hard-wired in one runtime | Composed per app from plugins, plus an org baseline whose locks bind every app that extends it |
 | Adopting it | Route your app through it | One line for tracing, then grow level by level |
 | Languages | Usually one | Python, TypeScript, and any language through the sidecar |
 

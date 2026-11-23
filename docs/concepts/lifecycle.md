@@ -24,7 +24,7 @@ Each hook point has a **direction**:
 | `tool.after` | outbound | A tool returns | Sanitize, truncate, label untrusted | tools, guardrails (tool_result) |
 | `output.before` | inbound | A candidate final output exists | Validate, repair, escalate, block | validation, guardrails (output) |
 | `approval.resolved` | inbound | A human answers a suspended step | Re-check edited arguments, resume or end | approvals |
-| `run.error` | outbound | An exception escapes a step | Classify it into the error taxonomy | core |
+| `run.error` | outbound | An exception escapes a step | Classify it into the error taxonomy; the run fails | core |
 | `run.end` | outbound | The run reaches a terminal state | Persist, emit completion, sample for evals | state, evals, observability |
 
 `harnessweaver hooks harness.yaml --task <task>` prints the middleware on each hook point of your spec, in the order it runs.
@@ -73,10 +73,10 @@ sequenceDiagram
     R->>Bus: output.before - validate, repair, guards
     H->>Bus: run.end - persist, sample evals
     H-->>App: RunResult(status=completed)
-    Note over H,Bus: Any exception fires run.error (classify, retry or fail)
+    Note over H,Bus: Any exception fires run.error (classify), then the run fails
 ```
 
-Not every run fires every hook: a run without retrieval never fires `context.after`, and `run.error` fires only on an error. A [session](integration-styles.md#session) fires the hooks your code asks for, in the order it asks.
+Not every run fires every hook: a run without retrieval never fires `context.after`, and `run.error` fires only on an error. A run that reaches `run.error` always ends `failed`, whatever its middleware returns: a `Retry` or a `Block` there doesn't change the ending. A [session](integration-styles.md#session) fires the hooks your code asks for, in the order it asks.
 
 ## Event payloads
 
@@ -123,7 +123,7 @@ stateDiagram-v2
     awaiting_approval --> escalated: timeout, on_timeout=escalate
     running --> escalated: Escalate
     running --> blocked: Block
-    running --> failed: unrecoverable run.error
+    running --> failed: an error (run.error)
     running --> cancelled: cancel()
     awaiting_approval --> cancelled: cancel()
     running --> completed: run.end

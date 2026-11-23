@@ -1,6 +1,6 @@
 # Layers, locks and bounds
 
-An app's effective spec is built from layers. The platform team's controls live in an org profile that every app extends, and **locks** and **bounds** make sure no app can remove or loosen them. This page explains how layers merge and how a baseline is enforced.
+An app's effective spec is built from layers. The platform team's controls live in an org profile that apps extend, and **locks** and **bounds** make sure no app that extends it can remove or loosen them. They bind only a spec that names the profile in `extends`, so the platform team checks that every app does ([Write an org baseline](../how-to/org-baseline.md#8-make-sure-every-app-extends-it)). This page explains how layers merge and how a baseline is enforced.
 
 ## The layers
 

@@ -1,6 +1,6 @@
 # Write an org baseline
 
-An org baseline is the profile your platform or security team publishes for every app to extend. Its locks and bounds make sure no app removes or loosens a required control. [Profiles and the org baseline](../tutorial/profiles.md) in the tutorial shows an app's side. This recipe is for the team that writes the baseline.
+An org baseline is the profile your platform or security team publishes for every app to extend. Its locks and bounds make sure no app that extends it removes or loosens a required control, and [step 8](#8-make-sure-every-app-extends-it) makes sure every app does. [Profiles and the org baseline](../tutorial/profiles.md) in the tutorial shows an app's side. This recipe is for the team that writes the baseline.
 
 ## 1. Start from a complete one
 
@@ -55,3 +55,16 @@ Put it where every app finds it:
 - inside a plugin package, as `hw.Plugin(profiles={"baseline": "profiles/baseline.yaml"})`, which apps reference as `profile://acme.baseline@^1` ([Plugins](../advanced/plugins.md#profiles-and-templates)).
 
 Then review every app's changes against it with `harnessweaver spec diff git:main:harness.yaml harness.yaml` in pull requests: it shows changed values, locks, profile layers and the adoption level, and reads `git:` sides with the profiles committed at that ref.
+
+## 8. Make sure every app extends it
+
+Locks, bounds and `require_level` bind only a spec that names the baseline in `extends`. A spec that leaves it out loads with the framework defaults alone: none of the baseline's guards or locks, no plugin allow-list, and a required level of L0, whatever its `risk_tier`. HarnessWeaver can't tell an app that should extend your baseline from one that never needed to, so checking it is your job, in review and in CI:
+
+- Make the platform team a required reviewer of every app's `harness.yaml`, with a `CODEOWNERS` entry, so a change to `extends` can't merge unseen. The `spec diff` in [step 7](#7-distribute-it) reports a dropped baseline as `Layer removed`, with every lock it took along.
+- In each app's CI, load the spec and fail when the baseline isn't among its layers. `harnessweaver spec validate` prints them on its `layers:` line:
+
+```bash
+harnessweaver spec validate harness.yaml | grep -q "org://acme-baseline@" || { echo "harness.yaml must extend org://acme-baseline"; exit 1; }
+```
+
+Run it with the baseline on `HARNESSWEAVER_PROFILE_PATH`, as the app finds it in production. Once the spec extends the baseline, the same `spec validate` also fails on any broken lock, bound or required level.

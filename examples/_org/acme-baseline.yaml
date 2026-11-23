@@ -1,4 +1,4 @@
-# Acme's org baseline: the controls every Acme app gets and no app can switch off.
+# Acme's org baseline: the controls every Acme app that extends it gets, and none can switch off.
 #
 # Apps pick it up with `extends: ["org://acme-baseline@^1"]` and find it through
 # HARNESSWEAVER_PROFILE_PATH (or --profile-dir), which points at this directory.

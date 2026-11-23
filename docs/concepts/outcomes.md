@@ -22,7 +22,7 @@ flowchart LR
 
 Where each outcome is honored:
 
-- **`Retry`** is honored at `model.after` (the model is asked again, once) and at `output.before` (a repair, up to `validation.max_repairs`). When the retries run out, the run is blocked with code `retry_exhausted`. Anywhere else a `Retry` becomes `Block` with code `retry_not_supported`.
+- **`Retry`** is honored at `model.after` (the model is asked again, once) and at `output.before` (a repair, up to `validation.max_repairs`). When the retries run out, the run is blocked with code `retry_exhausted`. Anywhere else a `Retry` becomes `Block` with code `retry_not_supported`, except at `run.error`, where no outcome changes the ending: the run fails.
 - **`Suspend`** pauses at `tool.before` and `output.before` in a harness-driven run ([Approvals](../tutorial/approvals.md)). Anywhere else, and in a standalone session or a TypeScript session, it escalates, because the app's code can't be resumed later.
 - **`Block`** stops the chain: no later middleware on that hook runs.
 

@@ -120,7 +120,7 @@
             <div class="panel">
               <span class="step">01 / layers</span>
               <h3>The spec is layered</h3>
-              <p>Later layers extend earlier ones. The org baseline's locks and bounds are enforced at load: an app can't remove a control, and a value out of bounds is an error, never clamped.</p>
+              <p>Later layers extend earlier ones. The org baseline's locks and bounds are enforced at load: an app that extends it can't remove a locked control, and a value out of bounds is an error, never clamped.</p>
               <ul class="chips">
                 <li>defaults</li><li>profile</li><li>org baseline</li><li>app spec</li><li>env overlay</li><li>per-run</li>
               </ul>
@@ -163,7 +163,7 @@
             <article class="card">
               <div class="glyph">!</div>
               <h3>Safe by default</h3>
-              <p>The org baseline can't be removed by an app, controls fail closed, and nothing reaches a log or span unredacted.</p>
+              <p>An app that extends the org baseline can't remove or loosen what it locks, controls fail closed, and nothing reaches a log or span unredacted.</p>
             </article>
             <article class="card">
               <div class="glyph">+</div>

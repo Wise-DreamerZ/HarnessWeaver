@@ -46,14 +46,14 @@ This document is the architecture of HarnessWeaver: what the parts are, how they
 
 ## 1. About this document
 
-HarnessWeaver is a **framework that produces harnesses**. It is not one central harness that every app is routed through. Each application team uses it to assemble *its own* harness from a small core plus swappable parts, while the platform team's org baseline applies to every app and can't be removed.
+HarnessWeaver is a **framework that produces harnesses**. It is not one central harness that every app is routed through. Each application team uses it to assemble *its own* harness from a small core plus swappable parts, while the platform team's org baseline binds every app that extends it: no app can remove or loosen what it locks.
 
 | Question | Building a harness | Building HarnessWeaver |
 | --- | --- | --- |
 | Who is the user? | End users of one AI system | Engineers building many different AI apps |
 | What ships? | A running service | Libraries, a spec format, plugins, a sidecar, a CLI, a test kit |
 | Who owns control flow? | The harness | The app team, with HarnessWeaver intercepting |
-| How are controls applied? | Hard-wired in one runtime | Composed per app from modules, with an org baseline that can't be removed |
+| How are controls applied? | Hard-wired in one runtime | Composed per app from modules, with an org baseline whose locks bind every app that extends it |
 | What must stay stable? | The service API | The extension contracts: hook points, ports, spec format |
 | What does success look like? | One system is reliable | A new team gets tracing, budgets, guardrails, tool governance and evals in under a day, without rewriting its app |
 
@@ -82,7 +82,7 @@ Wire and file formats use the brand too: `apiVersion: harnessweaver/v1`, `HARNES
 
 Every feature request is tested against these ten goals. **When two goals conflict, the earlier one wins.**
 
-1. **Safe by default, removable by nobody.** Org baseline controls (tracing, budgets, PII redaction, tool policy) apply automatically and can't be switched off by app config. (R1, R2)
+1. **Safe by default, removable by nobody.** Org baseline controls (tracing, budgets, PII redaction, tool policy) apply to every app that extends the baseline, and its config can't switch them off. Making sure every app extends it is the platform team's review and CI job (No. 11). (R1, R2)
 2. **Non-invasive.** HarnessWeaver wraps whatever the app already uses. Adopting it never requires rewriting an agent or switching frameworks.
 3. **Incremental.** Each adoption level (observe, guard, govern, orchestrate, improve) is useful on its own. One line of code gets you level 0.
 4. **Composable.** Every capability is a module behind a port. Apps pick modules; modules pick providers.
@@ -192,7 +192,7 @@ Each hook point has a **direction**:
 | `tool.after` | outbound | A tool returns | Sanitize, truncate, label untrusted | tools, guardrails |
 | `output.before` | inbound | A candidate final output exists | Validate, repair, escalate, block | validation, guardrails (output) |
 | `approval.resolved` | inbound | A human answers a suspended step | Re-authorize edited args, resume or end | approvals |
-| `run.error` | outbound | Any exception escapes a step | Classify into the error taxonomy, retry or fail | core |
+| `run.error` | outbound | Any exception escapes a step | Classify into the error taxonomy; the run fails | core |
 | `run.end` | outbound | The run reaches a terminal state | Persist, emit completion, sample for evals | state, evals, observability |
 
 ### A run, end to end
@@ -239,7 +239,7 @@ sequenceDiagram
     R->>Bus: output.before - validate, repair, guards
     H->>Bus: run.end - persist, sample evals
     H-->>App: RunResult(status=completed)
-    Note over H,Bus: Any exception fires run.error (classify, retry or fail)
+    Note over H,Bus: Any exception fires run.error (classify), then the run fails
 ```
 
 ## 8. The hook bus
@@ -426,6 +426,8 @@ flowchart TD
     V -->|hook unreachable| E4[SpecError: UnreachableHook]
     V -->|ok| OK[EffectiveSpec + provenance]
 ```
+
+Profiles join through the app spec's `extends` only, so an org baseline's locks, bounds and `require_level` bind the specs that name it. A spec that names no profile merges with the framework defaults alone. Making sure every app extends the baseline is the platform team's job, in review and CI.
 
 ### Documents
 
@@ -890,7 +892,7 @@ stateDiagram-v2
     awaiting_approval --> escalated: timeout, on_timeout=escalate
     running --> escalated: Escalate
     running --> blocked: Block
-    running --> failed: unrecoverable run.error
+    running --> failed: an error (run.error)
     running --> cancelled: cancel()
     awaiting_approval --> cancelled: cancel()
     running --> completed: run.end
@@ -1297,6 +1299,7 @@ Each ADR records a decision, the reason for it, and its status, in its own file 
 
 | Guide says | HarnessWeaver does | Why (ADR) |
 | --- | --- | --- |
+| `run.error` classifies the error, then retries or fails | It classifies; the run always fails, whatever its middleware returns | A failed run may have spent budget and called tools, so redoing it is the app's call; steps that can be redone retry at `model.after` and `output.before` |
 | Working name `harnesskit`, CLI `harness` | `harnessweaver`, CLI `harnessweaver` | Name taken; brand decision (0001) |
 | Python 3.11+ | Python 3.12+ | User decision (0002) |
 | Core depends only on Pydantic and the OTel API | Adds PyYAML, anyio and loguru | The spec format and deadlines need the first two (0003); logging uses loguru (0024) |

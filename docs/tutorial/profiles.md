@@ -1,6 +1,6 @@
 # Profiles and the org baseline
 
-Every app in a company needs some of the same controls, and some of them must never be switched off. A **profile** is a reusable partial spec that an app extends. An **org baseline** is the profile your platform or security team publishes: every app extends it, and its **locks** and **bounds** make sure no app removes or loosens what it requires.
+Every app in a company needs some of the same controls, and some of them must never be switched off. A **profile** is a reusable partial spec that an app extends. An **org baseline** is the profile your platform or security team publishes for every app to extend, and its **locks** and **bounds** make sure no app removes or loosens what it requires.
 
 ## Use a built-in profile
 
