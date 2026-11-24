@@ -30,6 +30,7 @@ from harnessweaver.modules.evals.results import (
 )
 from harnessweaver.modules.evals.runner import (
     EVAL_PRINCIPAL,
+    EvalClock,
     EvalTarget,
     run_suite,
     shadow_guards,
@@ -41,6 +42,7 @@ __all__ = [
     "EVAL_PRINCIPAL",
     "CitationPresent",
     "Contains",
+    "EvalClock",
     "EvalTarget",
     "Exact",
     "FieldEquals",
