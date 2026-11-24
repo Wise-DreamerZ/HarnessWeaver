@@ -25,7 +25,7 @@ from pydantic_core import to_jsonable_python
 from harnessweaver import Harness, Session
 from harnessweaver.contracts import API_VERSION
 from harnessweaver.core.errors import ErrorInfo, HarnessError, NotFound, SpecError, ValidationFailed
-from harnessweaver.core.evals import SuiteResult
+from harnessweaver.core.evals import EvalDataset, SuiteResult
 from harnessweaver.core.guards import GuardResult
 from harnessweaver.core.hooks import HookPoint, ToolResultEvent
 from harnessweaver.core.ids import new_id
@@ -49,6 +49,8 @@ from harnessweaver.core.sidecar import (
     ValidateRequest,
 )
 from harnessweaver.core.tools import ToolResult, ToolVerdict
+from harnessweaver.modules.evals import EvalClock
+from harnessweaver.modules.state import MemoryStateStore
 from harnessweaver_sidecar.auth import authorized
 
 __all__ = ["ERRORS", "router"]
@@ -292,10 +294,23 @@ async def answer_approval(
 async def run_evals(body: EvalRunRequest, harness: Served) -> SuiteResult:
     """Run an eval suite: one given in the request, or a file the spec's ``evals``
     lists. Only listed files can be named, so a client can't make harnessd read
-    any other file."""
+    any other file.
+
+    As in ``harnessweaver eval run``, the suite runs on the eval clock with its
+    runs kept in memory, so its verdict doesn't change with the day it runs on.
+    """
+    source: EvalDataset | str
     if body.dataset is not None:
-        return await harness.evaluate(body.dataset)
-    listed = {file for files in harness.spec.spec.evals.suites().values() for file in files}
-    if body.file not in listed:
-        raise NotFound(f"{body.file!r} isn't one of the spec's eval suites")
-    return await harness.evaluate(body.file)
+        source = body.dataset
+    else:
+        listed = {file for files in harness.spec.spec.evals.suites().values() for file in files}
+        if body.file not in listed:
+            raise NotFound(f"{body.file!r} isn't one of the spec's eval suites")
+        source = body.file
+    # ponytail: a harness per request, built from the served spec; evals are rare, and
+    # the served harness keeps its real clock for live runs.
+    evals = Harness.from_spec(harness.spec, clock=EvalClock(), state=MemoryStateStore())
+    try:
+        return await evals.evaluate(source)
+    finally:
+        await evals.aclose()

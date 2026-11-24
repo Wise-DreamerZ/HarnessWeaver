@@ -63,7 +63,7 @@ Every route except `GET /v1/health` needs `Authorization: Bearer <token>`. The f
 | `POST /v1/runs` | `{task, input, principal, tenant, idempotency_key, budget, attributes}` | Run a task to the end, or until it waits for approval | `RunResult` |
 | `GET /v1/runs/{run_id}` | - | A run's latest state | `RunResult` |
 | `POST /v1/runs/{run_id}/approvals/{approval_id}` | `{decision, approver, edited_args, reason}` | Answer an approval (`approve`, `reject`, `edit`) | `RunResult` |
-| `POST /v1/evals/run` | `{dataset}` or `{file}` | An eval suite sent inline, or a file the spec's `evals` lists | `SuiteResult` |
+| `POST /v1/evals/run` | `{dataset}` or `{file}` | An eval suite sent inline, or a file the spec's `evals` lists, run as `harnessweaver eval run` runs it: on Monday 2026-01-05 09:00 UTC whatever the day, with its runs kept in memory | `SuiteResult` |
 
 `principal` is an id or `{id, roles, attrs}` (default `anonymous`); `tenant` defaults to `default`.
 

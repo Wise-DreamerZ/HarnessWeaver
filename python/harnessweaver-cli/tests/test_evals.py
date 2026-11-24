@@ -10,6 +10,7 @@ import pytest
 from typer.testing import CliRunner
 
 import harnessweaver as hw
+from harnessweaver.modules.evals import runner as eval_runner
 from harnessweaver_cli import evals
 from harnessweaver_cli._load import load_harness
 from harnessweaver_cli.main import app
@@ -45,7 +46,7 @@ def test_the_suites_run_on_a_fixed_date_that_moves_with_real_time(
 
     ticks = [100.0]
     monkeypatch.setattr(evals, "load_harness", spy)
-    monkeypatch.setattr(evals, "monotonic", lambda: ticks[0])
+    monkeypatch.setattr(eval_runner, "monotonic", lambda: ticks[0])
     monkeypatch.setattr(hw.SystemClock, "now", lambda self: datetime(2026, 1, 10, tzinfo=UTC))
     assert runner.invoke(app, ["eval", "run", "-e", "offline"]).exit_code == 0
     at = ["eval", "run", "-e", "offline", "--at", "2026-01-10T12:00:00+02:00"]

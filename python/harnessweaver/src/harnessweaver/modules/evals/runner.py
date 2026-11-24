@@ -2,11 +2,13 @@
 
 from collections.abc import Sequence
 from contextlib import AbstractAsyncContextManager
+from datetime import datetime, timedelta
+from time import monotonic
 from typing import Any, Protocol
 
 from pydantic import JsonValue
 
-from harnessweaver.core.envelope import Principal
+from harnessweaver.core.envelope import FakeClock, Principal
 from harnessweaver.core.evals import (
     CaseResult,
     EvalCase,
@@ -25,10 +27,38 @@ from harnessweaver.modules.evals.results import firings, shadow_report, summariz
 from harnessweaver.modules.guardrails import configured_guards
 from harnessweaver.spec.models import HarnessSpec
 
-__all__ = ["EVAL_PRINCIPAL", "EvalTarget", "run_suite", "shadow_guards", "suite_shadow_report"]
+__all__ = [
+    "EVAL_PRINCIPAL",
+    "EvalClock",
+    "EvalTarget",
+    "run_suite",
+    "shadow_guards",
+    "suite_shadow_report",
+]
 
 EVAL_PRINCIPAL = "harnessweaver.evals"
 """Who judges' sessions run as."""
+
+
+class EvalClock(FakeClock):
+    """The clock eval suites run on: a fixed start that then moves with real time.
+
+    A suite's verdicts don't change with the day it runs on (RULES C4), while
+    deadlines and rate-limit windows still see the time that really passes. With
+    no start it is the Monday ``FakeClock`` starts on, as in tests. ``harnessweaver
+    eval run`` and harnessd's ``/v1/evals/run`` both run suites on it.
+
+    Raises:
+        ValueError: For a start time with no time zone.
+    """
+
+    def __init__(self, start: datetime | None = None) -> None:
+        super().__init__(start)
+        self._began = monotonic()
+
+    def now(self) -> datetime:
+        """The start, plus the real time since the clock was made."""
+        return super().now() + timedelta(seconds=monotonic() - self._began)
 
 
 class EvalTarget(Protocol):

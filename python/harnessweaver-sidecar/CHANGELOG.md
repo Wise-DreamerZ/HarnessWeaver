@@ -4,6 +4,10 @@ All notable changes to `harnessd`. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Fixed
+
+- `POST /v1/evals/run` runs a suite as `harnessweaver eval run` does: on the eval clock, from Monday 2026-01-05 09:00 UTC whatever the day, with its runs kept in memory. Before, it used the real clock, so a suite with a date rule, such as Example 03's weekend refunds, failed through harnessd on a weekend while the CLI passed. It needs the core's `EvalClock`, in its next release.
+
 ## 0.2.1 - 2026-11-01
 
 The first version published to PyPI.

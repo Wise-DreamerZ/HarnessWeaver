@@ -13,16 +13,15 @@ production runs ``evals.online`` sampled.
 import json
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from time import monotonic
 from typing import Annotated, Any
 
 import anyio
 import typer
 from pydantic import ValidationError
 
-from harnessweaver import FakeClock, Harness
+from harnessweaver import Harness
 from harnessweaver.core.errors import HarnessError, SpecError
 from harnessweaver.core.evals import (
     Baseline,
@@ -33,6 +32,7 @@ from harnessweaver.core.evals import (
     SuiteResult,
 )
 from harnessweaver.modules.evals import (
+    EvalClock,
     compare,
     load_dataset,
     online_shadow_report,
@@ -53,34 +53,14 @@ BASELINES = Path(".harness") / "baselines"
 Names = Annotated[list[str] | None, typer.Option(help="Only these (repeatable).")]
 
 
-class _EvalClock(FakeClock):
-    """A clock that starts at a fixed moment and then moves with real time.
-
-    The date is the one the suites assume, whatever day they run on (RULES C4),
-    while deadlines and rate-limit windows still see the time that really passes.
-    With no start it is the Monday ``FakeClock`` starts on, as in tests.
-
-    Raises:
-        ValueError: For a start time with no time zone.
-    """
-
-    def __init__(self, start: datetime | None = None) -> None:
-        super().__init__(start)
-        self._began = monotonic()
-
-    def now(self) -> datetime:
-        """The start, plus the real time since the clock was made."""
-        return super().now() + timedelta(seconds=monotonic() - self._began)
-
-
-def _clock(at: str | None) -> _EvalClock:
+def _clock(at: str | None) -> EvalClock:
     """The clock the suites run on, starting at ``--at`` when it is given.
 
     Raises:
         typer.Exit: With code 2 for a time that isn't ISO 8601 with a time zone.
     """
     try:
-        return _EvalClock(datetime.fromisoformat(at) if at else None)
+        return EvalClock(datetime.fromisoformat(at) if at else None)
     except ValueError:
         raise fail(
             f"--at takes an ISO 8601 time with a time zone, such as 2026-01-10T10:00:00Z, "

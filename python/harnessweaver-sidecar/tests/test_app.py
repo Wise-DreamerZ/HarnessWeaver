@@ -251,6 +251,17 @@ def test_evals_run_a_listed_suite_or_one_sent_inline(client: TestClient) -> None
     assert both.status_code == 422
 
 
+def test_evals_run_on_a_fixed_date_not_today(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # As in `harnessweaver eval run`, a suite's verdict doesn't depend on the day (issue No. 52).
+    def today(self: harnessweaver.SystemClock) -> Any:
+        raise AssertionError("an eval read the real date")
+
+    monkeypatch.setattr(harnessweaver.SystemClock, "now", today)
+    assert post(client, "/v1/evals/run", {"file": "evals/refunds.yaml"})["passed"] is True
+
+
 def test_a_provider_check_runs_one_guardrail(client: TestClient) -> None:
     envelope = {"run_id": "run_1", "tenant": "acme", "principal": {"id": "alice"}}
     body = {"content": "mail ann@example.com", "envelope": envelope, "stage": "input"}

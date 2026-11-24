@@ -1246,7 +1246,7 @@
     "/v1/evals/run": {
       "post": {
         "summary": "Run Evals",
-        "description": "Run an eval suite: one given in the request, or a file the spec's ``evals``\nlists. Only listed files can be named, so a client can't make harnessd read\nany other file.",
+        "description": "Run an eval suite: one given in the request, or a file the spec's ``evals``\nlists. Only listed files can be named, so a client can't make harnessd read\nany other file.\n\nAs in ``harnessweaver eval run``, the suite runs on the eval clock with its\nruns kept in memory, so its verdict doesn't change with the day it runs on.",
         "operationId": "run_evals_v1_evals_run_post",
         "requestBody": {
           "content": {
