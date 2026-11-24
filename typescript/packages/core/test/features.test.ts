@@ -106,6 +106,17 @@ describe("tools", () => {
     await expect(h.session({}, (s) => s.tool("wire_money", {}))).rejects.toMatchObject({ details: { code: "tool_unknown" } });
     expect(refunds).toEqual([20]);
   });
+
+  it("blocks a call the policy denies even when a tool.before middleware asks a person first", async () => {
+    // Issue No. 53: nobody is asked about a call the governor would block anyway.
+    const ask = defineMiddleware({ name: "ask_finance", hooks: ["tool.before"], fail_mode: "closed", handler: () => ({ kind: "suspend", reason: "refunds on weekends need finance", approver_role: "finance" }) });
+    const acme = definePlugin({ namespace: "acme", version: "1.0.0", middleware: [ask] });
+    const cap = { id: "refund-cap", when: "tool.name == 'refund_payment' && args.amount_usd > 1000", effect: "deny" };
+    const path = project({ middleware: [{ use: "acme.ask_finance" }], tools: { manifests: ["tools/*.tool.yaml"] }, policy: { rules: [cap] } }, { "tools/refund.tool.yaml": REFUND_MANIFEST });
+    const h = load(path, { plugins: [acme], clock: new FakeClock(), tools: { refund_payment: () => ({ refunded: 0 }) } });
+    await expect(h.session({}, (s) => s.tool("refund_payment", { amount_usd: 1500 }))).rejects.toMatchObject({ details: { code: "policy_denied" } });
+    await expect(h.session({}, (s) => s.tool("refund_payment", { amount_usd: 20 }))).rejects.toBeInstanceOf(RunEscalated);
+  });
 });
 
 describe("models", () => {

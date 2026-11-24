@@ -217,8 +217,10 @@ export class RunContext implements RunScope {
 
   /**
    * One governed tool call: the budget, `tool.before`, the governor (steps 1 to 7), the
-   * tool, step 9 and `tool.after`. A tool that throws gives the model only its error's
-   * type, since the message may hold content (R9).
+   * tool, step 9 and `tool.after`. When a middleware suspends the call, the governor first
+   * decides it as a dry run and a block wins, so nobody is asked about a call that can't
+   * run (ADR-0049). A tool that throws gives the model only its error's type, since the
+   * message may hold content (R9).
    */
   async callTool(call: ToolCall): Promise<ToolResult> {
     const tools = this.parts.tools;
@@ -231,6 +233,11 @@ export class RunContext implements RunScope {
     const limit = this.meter.checkToolCall();
     if (limit !== undefined) this.budgetStop("tool.before", limit);
     const before = await this.emit("tool.before", { hook: "tool.before", call, tool: description.info, approval: null });
+    if (before.outcome.kind === "suspend" && this.parts.governor) {
+      // The most severe outcome wins (ADR-0049): block now what the governor would block after approval.
+      const verdict = await this.parts.governor.authorize(this, before.event.call, description, null, true);
+      if (verdict.decision === "block") throw new RunBlocked(verdict.reason, { hook: "tool.before", code: verdict.code ?? "blocked" });
+    }
     this.haltOn(before);
     const final = before.event.call;
     if (this.parts.governor) {

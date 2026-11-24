@@ -29,6 +29,8 @@ state: { use: sqlite }              # so waiting runs survive a restart
 
 An approval becomes a **grant** that matches the call by tool name and arguments, or the output by its content. When the resumed run repeats that call, it carries the approval into `tool.before` as `event.approval`, so middleware doesn't ask again (but still sees edited arguments). An approved output carries it into `output.before`, where it answers guards that ask for approval: the guard lets it through and adds a `guard_approved` note naming the guard and the approver (R13).
 
+Nobody is asked about a call that can't run. When a `tool.before` middleware suspends a call, the governor decides it first, and a block wins: the call is blocked with the governor's reason, and no approval is requested.
+
 One approval answers every request for approval at that step, and nothing else. It never turns a block, an escalation or a repair into an allow, redactions still chain, and shadow guards still record. A rejection is never a grant.
 
 `approvals.grant_scope` says how long a tool call's grant lasts:

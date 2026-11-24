@@ -843,7 +843,7 @@ spec:
 - **Digests.** `definition_digest` is `sha256:` and the hex SHA-256 of the canonical JSON of `{name, description, input_schema}`: keys sorted, no spaces, non-ASCII escaped, integral numbers written as integers (fixtures suite `governor`). A manifest whose pin doesn't match its definition still loads, and every call to it is blocked (rug-pull defense); `harnessweaver doctor` fails it, and warns about manifests with no pin, printing the digest to pin.
 - **Tools given in code** carry a manifest too: `ToolDescription.from_manifest(...)`, which `FakeTool` uses. With `tools.require_manifest: true` (the default), a tool without one is blocked (ADR-0028).
 
-The governor runs nine deterministic steps. Steps 1 to 7 run inside the governed tool call, **after** the `tool.before` middleware and on the arguments it leaves, so no middleware can rewrite arguments past the checks (ADR-0025). Step 9 runs before the `tool.after` middleware. Every decision is a `harness.governor` trace note with its step, code and reason, never the argument values (R9, R13).
+The governor runs nine deterministic steps. Steps 1 to 7 run inside the governed tool call, **after** the `tool.before` middleware and on the arguments it leaves, so no middleware can rewrite arguments past the checks (ADR-0025). When a `tool.before` middleware suspends a call, steps 1 to 7 first decide it as a dry run, and a block wins: nobody is asked to approve a call the governor would block (ADR-0049). Step 9 runs before the `tool.after` middleware. Every decision is a `harness.governor` trace note with its step, code and reason, never the argument values (R9, R13).
 
 ```mermaid
 flowchart TD
@@ -1270,7 +1270,7 @@ Each ADR records a decision, the reason for it, and its status, in its own file 
 | [0022](docs/adr/0022-provider-extensions.md) | Provider extensions on messages and responses | Accepted |
 | [0023](docs/adr/0023-validation-rule-when.md) | A validation rule's when describes a violation | Accepted |
 | [0024](docs/adr/0024-loguru.md) | Logging through loguru | Accepted |
-| [0025](docs/adr/0025-governor-placement.md) | Where the governor runs, and one way to combine policy rules | Accepted |
+| [0025](docs/adr/0025-governor-placement.md) | Where the governor runs, and one way to combine policy rules | Accepted; amended by 0049 |
 | [0026](docs/adr/0026-json-schema-subset.md) | A JSON Schema subset validator in the core | Accepted |
 | [0027](docs/adr/0027-code-transport.md) | Code-executing tools use transport: code | Accepted |
 | [0028](docs/adr/0028-manifests-for-code-tools.md) | Tools given in code carry manifests; stale pins block calls | Accepted |
@@ -1294,6 +1294,7 @@ Each ADR records a decision, the reason for it, and its status, in its own file 
 | [0046](docs/adr/0046-landing-page.md) | The website: a landing page at the root, the docs under /docs/ | Accepted; amended by 0047 |
 | [0047](docs/adr/0047-docs-for-users.md) | The docs site leaves out the ADRs and outside inspirations | Accepted |
 | [0048](docs/adr/0048-required-profiles.md) | A platform can require profiles at load | Proposed |
+| [0049](docs/adr/0049-block-beats-middleware-suspend.md) | A governor block beats a tool.before Suspend | Accepted |
 
 ## 29. Deviations from the design guide
 
@@ -1314,7 +1315,7 @@ Each ADR records a decision, the reason for it, and its status, in its own file 
 | YAML parsed by whatever library a language has | YAML 1.2 core schema everywhere; duplicate keys fail | Same meaning in every language (0017) |
 | Code tools are `sandbox: monty` on a native tool | `transport: code` with a named `sandbox` | The host never runs the code, and a code tool without a sandbox fails to load (0027) |
 | `approvals: { channel: ... }` | `approvals: { use: ... }`, like every other provider-selecting section | One spelling for choosing a provider |
-| Governor runs on `tool.before` | Inside the governed call, after the `tool.before` middleware, on the final arguments | Middleware can't rewrite arguments past the checks (0025) |
+| Governor runs on `tool.before` | Inside the governed call, after the `tool.before` middleware, on the final arguments; a dry run first when that middleware suspends the call, so a block wins | Middleware can't rewrite arguments past the checks (0025), and nobody approves a call that can't run (0049) |
 | `semantic` stage with a local model encoder (`local/bge-small`) | `semantic` uses the built-in hashing embedder unless `encoder:` names an `Embedder` provider | No model dependency in the core; real encoders come as plugins (0029) |
 | The Pydantic AI adapter installs the framework's middleware as Pydantic AI capabilities and hooks; `runner: { use: pydantic_ai, agent: ... }` | One `HarnessCapability` sends each model request and tool call through the hook bus; `runner: { use: pydantic_ai.agent, agent: ... }` | One place for budgets, telemetry and the governor; runner names are `namespace.name` (0037, 0015) |
 

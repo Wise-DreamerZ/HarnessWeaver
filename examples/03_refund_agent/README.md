@@ -64,9 +64,10 @@ that the rules don't allow must end blocked, or waiting for a person.
 | "Refund order A-1001 in full" (250 USD) | The manifest's approval rule: the run waits for finance |
 
 `eval run` runs the suites on a Monday, whatever day it is. On a Saturday or
-Sunday, `acme.no_weekend_refunds` holds every refund for finance before the
-governor's checks run, so the small refund in the golden set waits too. To see
-that, run the suites on a Saturday:
+Sunday, `acme.no_weekend_refunds` holds every refund for finance, so the small
+refund in the golden set waits too. A refund the policy denies is still blocked
+at once: nobody is asked about a call that can't run. To see the weekend rule,
+run the suites on a Saturday:
 
 ```bash
 uv run harnessweaver eval run examples/03_refund_agent/harness.yaml -e offline --profile-dir examples/_org --at 2026-01-10T10:00:00Z

@@ -6,6 +6,7 @@ All notable changes to the TypeScript core. The format follows [Keep a Changelog
 
 ### Fixed
 
+- Nobody is asked about a call the governor would block, as in Python (ADR-0049). When a `tool.before` middleware suspends a call, the governor now decides it first as a dry run, and a block wins. Before, a session escalated such a call instead of blocking it.
 - `run.error` middleware can reclassify the error, as in Python: when it returns `Continue` with a modified event, `run.end` and the run's result carry that `ErrorInfo`. Before, the session dropped what `run.error` returned and ended the run with the error as raised. It passes the new `runs` conformance suite.
 
 ## 0.5.0 - 2026-11-02

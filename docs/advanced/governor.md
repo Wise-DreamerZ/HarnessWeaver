@@ -25,7 +25,7 @@ flowchart TD
     S9 --> Z([tool.after middleware])
 ```
 
-Steps 1 to 7 run **inside** the governed tool call, after the `tool.before` middleware and on the arguments it leaves, so no middleware can rewrite arguments past the checks. Step 9 runs before the `tool.after` middleware. Every decision is a `harness.governor` trace note with its step, code and reason, never the argument values (RULES R9, R13).
+Steps 1 to 7 run **inside** the governed tool call, after the `tool.before` middleware and on the arguments it leaves, so no middleware can rewrite arguments past the checks. When a `tool.before` middleware suspends a call, steps 1 to 7 first decide it as a dry run, which uses nothing up, and a block wins: nobody is asked to approve a call the governor would block. Step 9 runs before the `tool.after` middleware. Every decision is a `harness.governor` trace note with its step, code and reason, never the argument values (RULES R9, R13).
 
 | Step | Checks | Block codes |
 | --- | --- | --- |
