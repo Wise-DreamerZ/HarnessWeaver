@@ -44,7 +44,9 @@ class ToolCalls(RunContextBase):
         A call a human already approved carries the approval into ``tool.before``,
         with any edited arguments applied (DESIGNS No. 18). The governor checks the
         arguments the middleware leaves (steps 1 to 7) and sanitizes the result
-        before ``tool.after`` (step 9, ADR-0025).
+        before ``tool.after`` (step 9, ADR-0025). When a middleware suspends the
+        call, the governor first decides it as a dry run, and a block wins, so
+        nobody is asked to approve a call that can't run (ADR-0049).
 
         Adapters pass ``backend`` to describe and run a tool that the framework they
         wrap executes itself, such as a Pydantic AI agent's own function. It is
@@ -73,7 +75,18 @@ class ToolCalls(RunContextBase):
             call=call, tool=description.info, approval=grant.decision if grant else None
         )
         before = await self.emit(HookPoint.TOOL_BEFORE, event)
+        approval = grant.decision if grant else None
         if isinstance(before.outcome, Suspend):
+            if self.governor is not None:
+                # The most severe outcome wins (ADR-0049): a call the governor would block
+                # is blocked now, not after a human approved it. A dry run uses nothing up.
+                verdict = await self.governor.authorize(
+                    self, before.event.call, description, approval, dry_run=True
+                )
+                if verdict.decision == "block":
+                    raise RunBlocked(
+                        verdict.reason, hook=HookPoint.TOOL_BEFORE.value, code=verdict.code
+                    )
             self._ask_about(
                 before.event.call,
                 description.info,
@@ -85,7 +98,6 @@ class ToolCalls(RunContextBase):
         self.halt_on(before)
         call = before.event.call
         if self.governor is not None:
-            approval = grant.decision if grant else None
             verdict = await self.governor.authorize(self, call, description, approval)
             if verdict.decision == "block":
                 raise RunBlocked(

@@ -91,6 +91,17 @@ async def test_a_small_refund_runs_on_a_weekday_but_waits_on_a_weekend() -> None
     assert [r["amount_usd"] for r in tools.REFUNDS] == [30, 30]
 
 
+async def test_an_over_the_cap_refund_is_blocked_at_once_even_on_a_weekend() -> None:
+    request = "Please refund 1500 dollars for order A-1003."
+    for clock in (hw.FakeClock(), hw.FakeClock(SATURDAY)):
+        result = await offline(clock=clock).run("refund", request, principal=CASEY)
+        assert result.status is hw.RunStatus.BLOCKED
+        assert result.approval is None  # finance isn't asked about a call it can't allow
+        assert result.error is not None
+        assert result.error.details["code"] == "policy_denied"
+    assert tools.REFUNDS == []
+
+
 async def test_an_injected_order_note_cant_send_mail() -> None:
     result = await offline().run("refund", "What is the status of order A-1004?", principal=CASEY)
     assert result.status is hw.RunStatus.BLOCKED

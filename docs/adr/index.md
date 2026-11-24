@@ -32,7 +32,7 @@ Each architecture decision record (ADR) states a decision HarnessWeaver made, wh
 | [ADR-0022](0022-provider-extensions.md) | Provider extensions on messages and responses | Accepted |
 | [ADR-0023](0023-validation-rule-when.md) | A validation rule's when describes a violation | Accepted |
 | [ADR-0024](0024-loguru.md) | Logging through loguru | Accepted |
-| [ADR-0025](0025-governor-placement.md) | Where the governor runs, and one way to combine policy rules | Accepted |
+| [ADR-0025](0025-governor-placement.md) | Where the governor runs, and one way to combine policy rules | Accepted; amended by ADR-0049 |
 | [ADR-0026](0026-json-schema-subset.md) | A JSON Schema subset validator in the core | Accepted |
 | [ADR-0027](0027-code-transport.md) | Code-executing tools use transport: code | Accepted |
 | [ADR-0028](0028-manifests-for-code-tools.md) | Tools given in code carry manifests; stale pins block calls | Accepted |
@@ -56,3 +56,4 @@ Each architecture decision record (ADR) states a decision HarnessWeaver made, wh
 | [ADR-0046](0046-landing-page.md) | The website: a landing page at the root, the docs under /docs/ | Accepted; amended by ADR-0047 |
 | [ADR-0047](0047-docs-for-users.md) | The docs site leaves out the ADRs and outside inspirations | Accepted |
 | [ADR-0048](0048-required-profiles.md) | A platform can require profiles at load | Proposed |
+| [ADR-0049](0049-block-beats-middleware-suspend.md) | A governor block beats a tool.before Suspend | Accepted |

@@ -9,6 +9,10 @@ All notable changes to the core package. The format follows [Keep a Changelog](h
 - `harnessweaver.modules.evals.EvalClock`, the clock eval suites run on: it starts at a fixed moment (by default Monday 2026-01-05 09:00 UTC, where `FakeClock` starts) and moves with real time. It was the CLI's own; harnessd now uses it too.
 - Conformance fixtures suite `runs`: how a run ends when its code fails. It pins that `run.error` middleware returning a modified event reclassifies the error that `run.end` and the result carry, and that a `Retry` there doesn't retry the run.
 
+### Fixed
+
+- Nobody is asked to approve a call the governor would block (ADR-0049). When a `tool.before` middleware suspends a call, the governor now decides it first as a dry run, and a block wins. Before, the run waited for a person, and the governor blocked the call only after they approved it: on a weekend, Example 03 asked finance about a 1500 USD refund that its `refund-cap` rule denies.
+
 ## 0.18.0 - 2026-11-02
 
 The first version published to PyPI.

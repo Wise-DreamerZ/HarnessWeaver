@@ -107,6 +107,18 @@ async def test_rejecting_blocks_the_run(build: Builder, testkit: Any) -> None:
     assert testkit.RECORDER.tool_calls == []
 
 
+async def test_nobody_is_asked_about_a_call_the_policy_denies(build: Builder, testkit: Any) -> None:
+    # The middleware suspends every refund; the policy denies this one (issue No. 53).
+    cap = {"id": "cap", "when": "tool.name == 'refund' && args.amount > 100", "effect": "deny"}
+    harness = build(refund_spec(policy={"rules": [cap]}))
+    result = await harness.run("refund", "refund order 7", principal="alice")
+    assert result.status is hw.RunStatus.BLOCKED
+    assert result.approval is None
+    assert result.error is not None
+    assert result.error.details["code"] == "policy_denied"
+    assert testkit.RECORDER.tool_calls == []
+
+
 async def test_editing_runs_the_edited_arguments(build: Builder, testkit: Any) -> None:
     harness = build(refund_spec())
     first = await suspended(harness)
